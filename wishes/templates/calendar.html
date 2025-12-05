@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}Birthday Calendar - Birthday Wishes System{% endblock %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/main.min.css' rel='stylesheet' />
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="bg-white rounded-xl shadow-lg p-8">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-3xl font-bold gradient-text">
+                <i class="fas fa-calendar-alt mr-2"></i>
+                Birthday Calendar
+            </h1>
+
+            <div class="flex space-x-3">
+                <button id="add-event-btn" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition duration-300">
+                    <i class="fas fa-plus mr-2"></i> Add Event
+                </button>
+
+                <button id="sync-google-btn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300">
+                    <i class="fab fa-google mr-2"></i> Sync Google
+                </button>
+            </div>
+        </div>
+
+        <!-- Calendar Container -->
+        <div id="calendar" class="bg-white rounded-lg"></div>
+    </div>
+
+    <!-- Calendar Legend -->
+    <div class="mt-6 bg-white rounded-xl shadow-lg p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-info-circle text-purple-600 mr-2"></i>
+            Legend
+        </h3>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="flex items-center space-x-2">
+                <div class="w-4 h-4 bg-purple-600 rounded"></div>
+                <span class="text-sm text-gray-700">Birthdays</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-4 h-4 bg-green-600 rounded"></div>
+                <span class="text-sm text-gray-700">Events</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-4 h-4 bg-orange-600 rounded"></div>
+                <span class="text-sm text-gray-700">Reminders</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <div class="w-4 h-4 bg-blue-600 rounded"></div>
+                <span class="text-sm text-gray-700">Group Wishes</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Event Modal -->
+<div id="event-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold gradient-text">Add Calendar Event</h2>
+            <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <form id="event-form" class="space-y-4">
+            {% csrf_token %}
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Event Title</label>
+                <input type="text" name="event_title" required
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Event Date & Time</label>
+                <input type="datetime-local" name="event_date" required
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Location (Optional)</label>
+                <input type="text" name="location"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                <textarea name="notes" rows="3"
+                          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"></textarea>
+            </div>
+
+            <button type="submit" class="w-full bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition duration-300 font-semibold">
+                <i class="fas fa-plus-circle mr-2"></i> Add Event
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js'></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    const calendarData = {{ calendar_data|safe }};
+
+    // Initialize FullCalendar
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listMonth'
+        },
+        height: 'auto',
+        events: calendarData.map(event => ({
+            title: event.title,
+            start: event.date,
+            backgroundColor: '#7c3aed',
+            borderColor: '#7c3aed',
+            extendedProps: {
+                userId: event.user_id,
+                age: event.age
+            }
+        })),
+        eventClick: function(info) {
+            alert('Birthday: ' + info.event.title + '
+Age: ' + info.event.extendedProps.age);
+        },
+        eventDidMount: function(info) {
+            info.el.style.cursor = 'pointer';
+        }
+    });
+
+    calendar.render();
+
+    // Modal handling
+    const modal = document.getElementById('event-modal');
+    const addEventBtn = document.getElementById('add-event-btn');
+    const closeModal = document.getElementById('close-modal');
+
+    addEventBtn.addEventListener('click', function() {
+        modal.classList.remove('hidden');
+    });
+
+    closeModal.addEventListener('click', function() {
+        modal.classList.add('hidden');
+    });
+
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+});
+</script>
+{% endblock %}

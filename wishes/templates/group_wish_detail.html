@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ group_wish.title }} - Group Wish Details{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-xl p-8 mb-8 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-4xl font-bold mb-2">{{ group_wish.title }}</h1>
+                <p class="text-purple-100 text-lg">
+                    For {{ group_wish.recipient.get_full_name|default:group_wish.recipient.username }}'s Birthday
+                </p>
+            </div>
+
+            <span class="{% if group_wish.is_active %}bg-green-500{% else %}bg-gray-500{% endif %} text-white px-6 py-3 rounded-full text-lg font-semibold">
+                {% if group_wish.is_active %}Active{% else %}Closed{% endif %}
+            </span>
+        </div>
+    </div>
+
+    <!-- Info Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm mb-1">Contributors</p>
+                    <h3 class="text-3xl font-bold text-purple-600">{{ group_wish.contributors.count }}</h3>
+                </div>
+                <i class="fas fa-users text-4xl text-purple-200"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm mb-1">Contributions</p>
+                    <h3 class="text-3xl font-bold text-green-600">{{ contributions|length }}</h3>
+                </div>
+                <i class="fas fa-comment-dots text-4xl text-green-200"></i>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm mb-1">Send Date</p>
+                    <h3 class="text-lg font-bold text-blue-600">{{ group_wish.scheduled_send_date|date:"M d, Y" }}</h3>
+                </div>
+                <i class="fas fa-calendar-check text-4xl text-blue-200"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invitation Code (for creators) -->
+    {% if is_creator %}
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">
+            <i class="fas fa-share-alt text-purple-600 mr-2"></i>
+            Share Invitation Code
+        </h2>
+
+        <div class="bg-purple-50 rounded-lg p-6">
+            <p class="text-gray-700 mb-3">Share this code with others to let them contribute:</p>
+            <div class="flex items-center space-x-4">
+                <code class="flex-1 bg-white px-6 py-4 rounded-lg text-2xl font-mono font-bold text-purple-600 text-center">
+                    {{ group_wish.invitation_code }}
+                </code>
+                <button onclick="copyInvitationCode()"
+                        class="bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700 transition duration-300">
+                    <i class="fas fa-copy mr-2"></i> Copy Code
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Add Contribution Form -->
+    {% if group_wish.is_active and user != group_wish.recipient %}
+    <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">
+            <i class="fas fa-plus-circle text-purple-600 mr-2"></i>
+            Add Your Contribution
+        </h2>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Your Birthday Message
+                </label>
+                <textarea name="text_content" required rows="5"
+                          class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-purple-500"
+                          placeholder="Write your heartfelt message..."></textarea>
+            </div>
+
+            <!-- Voice Recording Section -->
+            <div class="border-2 border-dashed border-purple-300 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-microphone text-purple-600 mr-2"></i>
+                    Add Voice Message (Optional)
+                </h3>
+
+                <div class="flex items-center space-x-4">
+                    <button type="button" id="start-record-btn"
+                            class="bg-red-600 text-white px-6 py-3 rounded-full hover:bg-red-700 transition duration-300">
+                        <i class="fas fa-microphone mr-2"></i> Start Recording
+                    </button>
+
+                    <button type="button" id="stop-record-btn"
+                            class="hidden bg-gray-600 text-white px-6 py-3 rounded-full hover:bg-gray-700 transition duration-300">
+                        <i class="fas fa-stop mr-2"></i> Stop
+                    </button>
+
+                    <div id="recording-indicator" class="hidden flex items-center space-x-2">
+                        <div class="animate-pulse bg-red-600 w-3 h-3 rounded-full"></div>
+                        <span id="recording-timer">00:00</span>
+                    </div>
+                </div>
+
+                <div id="audio-player-container" class="mt-4"></div>
+            </div>
+
+            <div class="flex items-center space-x-2">
+                <input type="checkbox" name="is_anonymous"
+                       class="form-checkbox h-5 w-5 text-purple-600">
+                <label class="text-sm text-gray-700">Make my contribution anonymous</label>
+            </div>
+
+            <button type="submit"
+                    class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-4 rounded-xl hover:from-purple-700 hover:to-indigo-700 transition duration-300 font-semibold shadow-lg">
+                <i class="fas fa-paper-plane mr-2"></i> Submit Contribution
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- All Contributions -->
+    <div class="bg-white rounded-xl shadow-lg p-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">
+            <i class="fas fa-comments text-purple-600 mr-2"></i>
+            All Contributions ({{ contributions|length }})
+        </h2>
+
+        {% if contributions %}
+            <div class="space-y-6">
+                {% for contribution in contributions %}
+                <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition duration-300">
+                    <div class="flex items-start space-x-4">
+                        {% if not contribution.is_anonymous %}
+                            {% if contribution.contributor.profile.profile_picture %}
+                                <img src="{{ contribution.contributor.profile.profile_picture.url }}"
+                                     alt="{{ contribution.contributor.username }}"
+                                     class="w-12 h-12 rounded-full object-cover">
+                            {% else %}
+                                <div class="w-12 h-12 rounded-full bg-purple-200 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-user text-purple-600"></i>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user-secret text-gray-600"></i>
+                            </div>
+                        {% endif %}
+
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between mb-2">
+                                <h3 class="font-semibold text-gray-800">
+                                    {% if contribution.is_anonymous %}
+                                        Anonymous
+                                    {% else %}
+                                        {{ contribution.contributor.get_full_name|default:contribution.contributor.username }}
+                                    {% endif %}
+                                </h3>
+                                <span class="text-sm text-gray-500">
+                                    {{ contribution.created_at|timesince }} ago
+                                </span>
+                            </div>
+
+                            <p class="text-gray-700 mb-3">{{ contribution.text_content }}</p>
+
+                            {% if contribution.voice_message %}
+                                <div class="bg-purple-50 rounded-lg p-4">
+                                    <p class="text-sm text-gray-600 mb-2">
+                                        <i class="fas fa-microphone mr-1"></i> Voice Message:
+                                    </p>
+                                    <audio controls class="w-full">
+                                        <source src="{{ contribution.voice_message.url }}" type="audio/webm">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-12 text-gray-500">
+                <i class="fas fa-inbox text-6xl mb-4"></i>
+                <p class="text-lg">No contributions yet. Be the first to add one!</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/voice-recorder.js' %}"></script>
+<script>
+function copyInvitationCode() {
+    const code = '{{ group_wish.invitation_code }}';
+    navigator.clipboard.writeText(code).then(function() {
+        alert('Invitation code copied: ' + code);
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Birthday Wishes System{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-3xl shadow-2xl p-12 mb-12 text-white">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+            <div>
+                <h1 class="text-5xl font-bold mb-6">
+                    Make Every Birthday Special 🎉
+                </h1>
+                <p class="text-xl mb-8 text-purple-100">
+                    Send personalized birthday wishes with voice messages, schedule reminders,
+                    and create memorable group celebrations with our professional platform.
+                </p>
+                <div class="flex space-x-4">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'create_wish' %}" class="bg-white text-purple-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition duration-300 shadow-lg">
+                            <i class="fas fa-plus-circle mr-2"></i> Create Wish
+                        </a>
+                        <a href="{% url 'dashboard' %}" class="bg-purple-800 text-white px-8 py-4 rounded-full font-semibold hover:bg-purple-900 transition duration-300">
+                            <i class="fas fa-chart-line mr-2"></i> Dashboard
+                        </a>
+                    {% else %}
+                        <a href="{% url 'register' %}" class="bg-white text-purple-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition duration-300 shadow-lg">
+                            <i class="fas fa-rocket mr-2"></i> Get Started Free
+                        </a>
+                        <a href="{% url 'login' %}" class="bg-purple-800 text-white px-8 py-4 rounded-full font-semibold hover:bg-purple-900 transition duration-300">
+                            <i class="fas fa-sign-in-alt mr-2"></i> Login
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="hidden md:block">
+                <img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=600"
+                     alt="Birthday celebration"
+                     class="rounded-2xl shadow-2xl">
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center card-hover">
+            <div class="text-4xl text-purple-600 mb-3">
+                <i class="fas fa-envelope-open-text"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-gray-800 mb-2">{{ total_wishes_sent|default:"10,000+" }}</h3>
+            <p class="text-gray-600">Wishes Sent</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center card-hover">
+            <div class="text-4xl text-purple-600 mb-3">
+                <i class="fas fa-users"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-gray-800 mb-2">5,000+</h3>
+            <p class="text-gray-600">Happy Users</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 text-center card-hover">
+            <div class="text-4xl text-purple-600 mb-3">
+                <i class="fas fa-microphone"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-gray-800 mb-2">3,500+</h3>
+            <p class="text-gray-600">Voice Messages</p>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="mb-12">
+        <h2 class="text-4xl font-bold text-center mb-10 gradient-text">
+            Amazing Features
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="text-3xl text-purple-600 mb-4">
+                    <i class="fas fa-microphone-alt"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">Voice Messages</h3>
+                <p class="text-gray-600">
+                    Record personalized voice messages to make your wishes more heartfelt and memorable.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="text-3xl text-purple-600 mb-4">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">Smart Scheduling</h3>
+                <p class="text-gray-600">
+                    Schedule wishes in advance and never miss an important birthday again.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="text-3xl text-purple-600 mb-4">
+                    <i class="fas fa-user-friends"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">Group Wishes</h3>
+                <p class="text-gray-600">
+                    Collaborate with friends and family to create amazing group birthday wishes.
+                </p>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                <div class="text-3xl text-purple-600 mb-4">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <h3 class="text-xl font-bold mb-3">AI Assistant</h3>
+                <p class="text-gray-600">
+                    Get help from our AI-powered chatbot to create perfect birthday messages.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% if user.is_authenticated %}
+    <!-- Upcoming Birthdays -->
+    {% if upcoming_birthdays %}
+    <div class="bg-white rounded-xl shadow-lg p-8 mb-12">
+        <h2 class="text-3xl font-bold mb-6 gradient-text">
+            <i class="fas fa-calendar-alt mr-2"></i> Upcoming Birthdays
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for profile in upcoming_birthdays|slice:":6" %}
+            <div class="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition duration-300">
+                <div class="flex items-center space-x-4">
+                    {% if profile.profile_picture %}
+                        <img src="{{ profile.profile_picture.url }}" alt="{{ profile.user.username }}" class="w-16 h-16 rounded-full object-cover">
+                    {% else %}
+                        <div class="w-16 h-16 rounded-full bg-purple-200 flex items-center justify-center">
+                            <i class="fas fa-user text-2xl text-purple-600"></i>
+                        </div>
+                    {% endif %}
+
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-lg">{{ profile.user.get_full_name|default:profile.user.username }}</h3>
+                        <p class="text-sm text-gray-600">
+                            <i class="fas fa-birthday-cake mr-1"></i>
+                            {{ profile.get_next_birthday|date:"M d, Y" }}
+                        </p>
+                    </div>
+                </div>
+
+                <a href="{% url 'create_wish' %}?recipient={{ profile.user.id }}"
+                   class="mt-3 block text-center bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition duration-300">
+                    <i class="fas fa-paper-plane mr-2"></i> Send Wish
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- Wish Templates -->
+    <div class="bg-white rounded-xl shadow-lg p-8">
+        <h2 class="text-3xl font-bold mb-6 gradient-text">
+            <i class="fas fa-file-alt mr-2"></i> Popular Wish Templates
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for template in featured_templates %}
+            <div class="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition duration-300">
+                <h3 class="font-bold text-lg mb-3 text-purple-600">
+                    {{ template.title }}
+                </h3>
+                <p class="text-gray-700 mb-4 italic">
+                    "{{ template.content|truncatewords:20 }}"
+                </p>
+                <span class="inline-block bg-purple-100 text-purple-800 text-xs px-3 py-1 rounded-full">
+                    {{ template.category|title }}
+                </span>
+            </div>
+            {% empty %}
+            <div class="col-span-3 text-center text-gray-500 py-8">
+                <i class="fas fa-inbox text-4xl mb-3"></i>
+                <p>No templates available yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

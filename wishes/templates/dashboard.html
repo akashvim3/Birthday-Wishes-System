@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Birthday Wishes System{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Welcome, Banner -->
+    <div class="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl shadow-xl p-8 mb-8 text-white">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-4xl font-bold mb-2">
+                    Welcome back, {{ user.get_full_name|default:user.username }}! 👋
+                </h1>
+                <p class="text-purple-100 text-lg">
+                    You have {{ upcoming_birthdays|length }} upcoming birthdays and {{ scheduled_wishes }} scheduled wishes.
+                </p>
+            </div>
+            <div class="hidden md:block">
+                <a href="{% url 'create_wish' %}" class="bg-white text-purple-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition duration-300 shadow-lg">
+                    <i class="fas fa-plus-circle mr-2"></i> Create New Wish
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm mb-1">Wishes Sent</p>
+                    <h3 class="text-3xl font-bold text-purple-600">{{ sent_wishes }}</h3>
+                </div>
+                <div class="bg-purple-100 p-4 rounded-full">
+                    <i class="fas fa-paper-plane text-2xl text-purple-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm mb-1">Wishes Received</p>
+                    <h3 class="text-3xl font-bold text-green-600">{{ received_wishes }}</h3>
+                </div>
+                <div class="bg-green-100 p-4 rounded-full">
+                    <i class="fas fa-gift text-2xl text-green-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm mb-1">Scheduled</p>
+                    <h3 class="text-3xl font-bold text-orange-600">{{ scheduled_wishes }}</h3>
+                </div>
+                <div class="bg-orange-100 p-4 rounded-full">
+                    <i class="fas fa-clock text-2xl text-orange-600"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm mb-1">Group Wishes</p>
+                    <h3 class="text-3xl font-bold text-blue-600">{{ active_group_wishes|length }}</h3>
+                </div>
+                <div class="bg-blue-100 p-4 rounded-full">
+                    <i class="fas fa-users text-2xl text-blue-600"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Upcoming Birthdays -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">
+                        <i class="fas fa-calendar-alt text-purple-600 mr-2"></i>
+                        Upcoming Birthdays
+                    </h2>
+                    <a href="{% url 'calendar' %}" class="text-purple-600 hover:text-purple-700 font-semibold">
+                        View All <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+
+                {% if upcoming_birthdays %}
+                    <div class="space-y-4">
+                        {% for profile in upcoming_birthdays|slice:":5" %}
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-300">
+                            <div class="flex items-center space-x-4">
+                                {% if profile.profile_picture %}
+                                    <img src="{{ profile.profile_picture.url }}"
+                                         alt="{{ profile.user.username }}"
+                                         class="w-12 h-12 rounded-full object-cover">
+                                {% else %}
+                                    <div class="w-12 h-12 rounded-full bg-purple-200 flex items-center justify-center">
+                                        <i class="fas fa-user text-purple-600"></i>
+                                    </div>
+                                {% endif %}
+
+                                <div>
+                                    <h3 class="font-semibold text-gray-800">
+                                        {{ profile.user.get_full_name|default:profile.user.username }}
+                                    </h3>
+                                    <p class="text-sm text-gray-600">
+                                        <i class="fas fa-birthday-cake mr-1"></i>
+                                        {{ profile.get_next_birthday|date:"F d, Y" }}
+                                        {% if profile.get_age %}
+                                            (Turning {{ profile.get_age|add:1 }})
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <a href="{% url 'create_wish' %}?recipient={{ profile.user.id }}"
+                               class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition duration-300">
+                                <i class="fas fa-paper-plane mr-1"></i> Send Wish
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-calendar-times text-4xl mb-3"></i>
+                        <p>No upcoming birthdays in the next 30 days.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions & Active Group Wishes -->
+        <div class="space-y-6">
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-bolt text-purple-600 mr-2"></i>
+                    Quick Actions
+                </h2>
+
+                <div class="space-y-3">
+                    <a href="{% url 'create_wish' %}"
+                       class="block bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700 transition duration-300 text-center font-semibold">
+                        <i class="fas fa-plus-circle mr-2"></i> Create Wish
+                    </a>
+
+                    <a href="{% url 'group_wishes' %}"
+                       class="block bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 transition duration-300 text-center font-semibold">
+                        <i class="fas fa-users mr-2"></i> New Group Wish
+                    </a>
+
+                    <a href="{% url 'calendar' %}"
+                       class="block bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition duration-300 text-center font-semibold">
+                        <i class="fas fa-calendar-plus mr-2"></i> Add to Calendar
+                    </a>
+
+                    <a href="{% url 'gift_suggestions' %}"
+                       class="block bg-orange-600 text-white p-4 rounded-lg hover:bg-orange-700 transition duration-300 text-center font-semibold">
+                        <i class="fas fa-gift mr-2"></i> Gift Ideas
+                    </a>
+                </div>
+            </div>
+
+            <!-- Active Group Wishes -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                    <i class="fas fa-user-friends text-purple-600 mr-2"></i>
+                    Active Group Wishes
+                </h2>
+
+                {% if active_group_wishes %}
+                    <div class="space-y-3">
+                        {% for group_wish in active_group_wishes|slice:":3" %}
+                        <a href="{% url 'group_wish_detail' group_wish.pk %}"
+                           class="block p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-300">
+                            <h3 class="font-semibold text-gray-800 mb-1">{{ group_wish.title }}</h3>
+                            <p class="text-sm text-gray-600">
+                                <i class="fas fa-users mr-1"></i>
+                                {{ group_wish.contributors.count }} contributors
+                            </p>
+                            <p class="text-xs text-gray-500 mt-1">
+                                <i class="fas fa-clock mr-1"></i>
+                                Deadline: {{ group_wish.deadline|date:"M d, Y" }}
+                            </p>
+                        </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4 text-gray-500">
+                        <i class="fas fa-inbox text-3xl mb-2"></i>
+                        <p class="text-sm">No active group wishes</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="mt-8 bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">
+            <i class="fas fa-history text-purple-600 mr-2"></i>
+            Recent Activity
+        </h2>
+
+        {% if recent_wishes %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">From/To</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Message</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for wish in recent_wishes %}
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    <i class="fas fa-{{ wish.wish_type }} mr-1"></i>
+                                    {{ wish.get_wish_type_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if wish.sender == user %}
+                                    <span class="text-gray-900 font-medium">To: {{ wish.recipient.username }}</span>
+                                {% else %}
+                                    <span class="text-gray-900 font-medium">From: {{ wish.sender.username }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4">
+                                <p class="text-sm text-gray-600 truncate max-w-xs">
+                                    {{ wish.text_content|truncatewords:10 }}
+                                </p>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                    {% if wish.status == 'sent' %}bg-green-100 text-green-800
+                                    {% elif wish.status == 'scheduled' %}bg-orange-100 text-orange-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ wish.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {{ wish.created_at|date:"M d, Y" }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-8 text-gray-500">
+                <i class="fas fa-inbox text-4xl mb-3"></i>
+                <p>No recent activity to display.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

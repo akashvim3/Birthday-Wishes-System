@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Birthday Wish - Birthday Wishes System{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold gradient-text mb-8">
+            <i class="fas fa-magic mr-2"></i>
+            Create Birthday Wish
+        </h1>
+
+        <form method="post" enctype="multipart/form-data" id="wish-form">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <!-- Recipient -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-user mr-1"></i> Recipient *
+                    </label>
+                    {{ form.recipient }}
+                </div>
+
+                <!-- Wish Type -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-list mr-1"></i> Wish Type *
+                    </label>
+                    {{ form.wish_type }}
+                </div>
+            </div>
+
+            <!-- Text Content -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-pen mr-1"></i> Your Birthday Message *
+                </label>
+                {{ form.text_content }}
+
+                <div class="mt-3 flex space-x-2">
+                    <button type="button" id="ai-suggest-btn"
+                            class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-lg hover:from-purple-700 hover:to-indigo-700 transition duration-300">
+                        <i class="fas fa-robot mr-2"></i> AI Suggestion
+                    </button>
+
+                    <button type="button" id="templates-btn"
+                            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition duration-300">
+                        <i class="fas fa-file-alt mr-2"></i> Use Template
+                    </button>
+                </div>
+            </div>
+
+            <!-- Voice Recording Section -->
+            <div class="mb-6 border-2 border-dashed border-purple-300 rounded-xl p-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-microphone text-purple-600 mr-2"></i>
+                    Record Voice Message (Optional)
+                </h3>
+
+                <div class="flex items-center space-x-4">
+                    <button type="button" id="start-record-btn"
+                            class="bg-red-600 text-white px-6 py-3 rounded-full hover:bg-red-700 transition duration-300 font-semibold">
+                        <i class="fas fa-microphone mr-2"></i> Start Recording
+                    </button>
+
+                    <button type="button" id="stop-record-btn"
+                            class="hidden bg-gray-600 text-white px-6 py-3 rounded-full hover:bg-gray-700 transition duration-300 font-semibold">
+                        <i class="fas fa-stop mr-2"></i> Stop Recording
+                    </button>
+
+                    <div id="recording-indicator" class="hidden flex items-center space-x-2">
+                        <div class="animate-pulse bg-red-600 w-3 h-3 rounded-full"></div>
+                        <span class="text-gray-700 font-medium">Recording...</span>
+                        <span id="recording-timer" class="text-gray-600">00:00</span>
+                    </div>
+                </div>
+
+                <div id="audio-player-container" class="mt-4"></div>
+            </div>
+
+            <!-- Scheduling -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    <i class="fas fa-calendar-alt mr-1"></i> Schedule for Later (Optional)
+                </label>
+                {{ form.scheduled_date }}
+                <p class="text-sm text-gray-500 mt-1">Leave blank to send immediately</p>
+            </div>
+
+            <!-- Options -->
+            <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="flex items-center space-x-2">
+                    {{ form.is_public }}
+                    <label class="text-sm text-gray-700">Make this wish public</label>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                    {{ form.is_anonymous }}
+                    <label class="text-sm text-gray-700">Send anonymously</label>
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex space-x-4">
+                <button type="submit"
+                        class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-8 py-4 rounded-xl hover:from-purple-700 hover:to-indigo-700 transition duration-300 font-semibold shadow-lg">
+                    <i class="fas fa-paper-plane mr-2"></i> Send Birthday Wish
+                </button>
+
+                <a href="{% url 'dashboard' %}"
+                   class="bg-gray-200 text-gray-700 px-8 py-4 rounded-xl hover:bg-gray-300 transition duration-300 font-semibold">
+                    <i class="fas fa-times mr-2"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Templates Section -->
+    {% if templates %}
+    <div class="mt-8 bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">
+            <i class="fas fa-file-alt text-purple-600 mr-2"></i>
+            Quick Templates
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% for template in templates %}
+            <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-500 hover:shadow-lg transition duration-300 cursor-pointer template-card">
+                <h3 class="font-semibold text-purple-600 mb-2">{{ template.title }}</h3>
+                <p class="text-sm text-gray-700 italic">"{{ template.content|truncatewords:15 }}"</p>
+                <button type="button" onclick="useTemplate('{{ template.content|escapejs }}')"
+                        class="mt-3 text-purple-600 hover:text-purple-700 font-semibold text-sm">
+                    <i class="fas fa-arrow-right mr-1"></i> Use This Template
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/voice-recorder.js' %}"></script>
+<script>
+function useTemplate(content) {
+    const textarea = document.querySelector('textarea[name="text_content"]');
+    if (textarea) {
+        textarea.value = content;
+        textarea.focus();
+
+        // Smooth scroll to textarea        .scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+document.getElementById('ai-suggest-btn').addEventListener('click', function() {
+    const btn = this;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Generating...';
+
+    fetch('{% url "chatbot_api" %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            message: 'Generate a heartfelt birthday wish message',
+            session_id: Date.now().toString()
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const textarea = document.querySelector('textarea[name="text_content"]');
+            if (textarea) {
+                textarea.value = data.response;
+            }
+        }
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    });
+});
+</script>
+{% endblock %}

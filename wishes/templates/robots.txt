@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /media/voice_messages/
+
+Sitemap: {{ request.scheme }}://{{ request.get_host }}/sitemap.xml

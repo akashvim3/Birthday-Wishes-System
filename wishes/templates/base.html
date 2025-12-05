@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Professional Birthday Wishes System - Send personalized birthday wishes with voice messages, schedule wishes, and more!">
+    <title>{% block title %}Birthday Wishes System{% endblock %}</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom CSS -->
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .light-sky-bg {
+            background-color: #E0F2FE;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .chatbot-widget {
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+        }
+
+        .chatbot-widget.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="light-sky-bg">
+    <!-- Navigation Bar -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="{% url 'index' %}" class="flex items-center space-x-2">
+                        <i class="fas fa-birthday-cake text-3xl text-purple-600"></i>
+                        <span class="text-2xl font-bold gradient-text">BirthdayWish Pro</span>
+                    </a>
+                </div>
+
+                <div class="hidden md:flex items-center space-x-6">
+                    <a href="{% url 'index' %}" class="text-gray-700 hover:text-purple-600 transition duration-300">
+                        <i class="fas fa-home mr-1"></i> Home
+                    </a>
+
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="text-gray-700 hover:text-purple-600 transition duration-300">
+                            <i class="fas fa-chart-line mr-1"></i> Dashboard
+                        </a>
+                        <a href="{% url 'create_wish' %}" class="text-gray-700 hover:text-purple-600 transition duration-300">
+                            <i class="fas fa-plus-circle mr-1"></i> Create Wish
+                        </a>
+                        <a href="{% url 'calendar' %}" class="text-gray-700 hover:text-purple-600 transition duration-300">
+                            <i class="fas fa-calendar-alt mr-1"></i> Calendar
+                        </a>
+                        <a href="{% url 'gift_suggestions' %}" class="text-gray-700 hover:text-purple-600 transition duration-300">
+                            <i class="fas fa-gift mr-1"></i> Gifts
+                        </a>
+                        <a href="{% url 'group_wishes' %}" class="text-gray-700 hover:text-purple-600 transition duration-300">
+                            <i class="fas fa-users mr-1"></i> Group Wishes
+                        </a>
+
+                        <div class="relative group">
+                            <button class="flex items-center space-x-2 text-gray-700 hover:text-purple-600">
+                                <i class="fas fa-user-circle text-xl"></i>
+                                <span>{{ user.username }}</span>
+                            </button>
+                            <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 hidden group-hover:block">
+                                <a href="{% url 'profile' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50">
+                                    <i class="fas fa-user mr-2"></i> Profile
+                                </a>
+                                <a href="{% url 'logout' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-purple-50">
+                                    <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                                </a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="text-gray-700 hover:text-purple-600 transition duration-300">
+                            <i class="fas fa-sign-in-alt mr-1"></i> Login
+                        </a>
+                        <a href="{% url 'register' %}" class="bg-purple-600 text-white px-6 py-2 rounded-full hover:bg-purple-700 transition duration-300">
+                            <i class="fas fa-user-plus mr-1"></i> Sign Up
+                        </a>
+                    {% endif %}
+                </div>
+
+                <!-- Mobile menu button -->
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" class="text-gray-700 hover:text-purple-600">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="{% url 'index' %}" class="block px-3 py-2 text-gray-700 hover:bg-purple-50 rounded-md">
+                    <i class="fas fa-home mr-2"></i> Home
+                </a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="block px-3 py-2 text-gray-700 hover:bg-purple-50 rounded-md">
+                        <i class="fas fa-chart-line mr-2"></i> Dashboard
+                    </a>
+                    <a href="{% url 'create_wish' %}" class="block px-3 py-2 text-gray-700 hover:bg-purple-50 rounded-md">
+                        <i class="fas fa-plus-circle mr-2"></i> Create Wish
+                    </a>
+                    <a href="{% url 'calendar' %}" class="block px-3 py-2 text-gray-700 hover:bg-purple-50 rounded-md">
+                        <i class="fas fa-calendar-alt mr-2"></i> Calendar
+                    </a>
+                    <a href="{% url 'gift_suggestions' %}" class="block px-3 py-2 text-gray-700 hover:bg-purple-50 rounded-md">
+                        <i class="fas fa-gift mr-2"></i> Gifts
+                    </a>
+                    <a href="{% url 'group_wishes' %}" class="block px-3 py-2 text-gray-700 hover:bg-purple-50 rounded-md">
+                        <i class="fas fa-users mr-2"></i> Group Wishes
+                    </a>
+                    <a href="{% url 'profile' %}" class="block px-3 py-2 text-gray-700 hover:bg-purple-50 rounded-md">
+                        <i class="fas fa-user mr-2"></i> Profile
+                    </a>
+                    <a href="{% url 'logout' %}" class="block px-3 py-2 text-gray-700 hover:bg-purple-50 rounded-md">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                    </a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="block px-3 py-2 text-gray-700 hover:bg-purple-50 rounded-md">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Login
+                    </a>
+                    <a href="{% url 'register' %}" class="block px-3 py-2 text-gray-700 hover:bg-purple-50 rounded-md">
+                        <i class="fas fa-user-plus mr-2"></i> Sign Up
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+            {% for message in messages %}
+                <div class="bg-{{ message.tags }}-100 border border-{{ message.tags }}-400 text-{{ message.tags }}-700 px-4 py-3 rounded relative mb-4 fade-in" role="alert">
+                    <span class="block sm:inline">{{ message }}</span>
+                    <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                        <i class="fas fa-times cursor-pointer" onclick="this.parentElement.parentElement.style.display='none';"></i>
+                    </span>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gradient-to-r from-purple-800 to-indigo-900 text-white mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-xl font-bold mb-4">
+                        <i class="fas fa-birthday-cake mr-2"></i> BirthdayWish Pro
+                    </h3>
+                    <p class="text-purple-200">
+                        The ultimate platform for sending heartfelt birthday wishes with voice messages, scheduling, and AI-powered assistance.
+                    </p>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Quick Links</h4>
+                    <ul class="space-y-2">
+                        <li><a href="{% url 'index' %}" class="text-purple-200 hover:text-white transition duration-300">Home</a></li>
+                        <li><a href="{% url 'dashboard' %}" class="text-purple-200 hover:text-white transition duration-300">Dashboard</a></li>
+                        <li><a href="{% url 'create_wish' %}" class="text-purple-200 hover:text-white transition duration-300">Create Wish</a></li>
+                        <li><a href="{% url 'gift_suggestions' %}" class="text-purple-200 hover:text-white transition duration-300">Gift Ideas</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Features</h4>
+                    <ul class="space-y-2">
+                        <li><i class="fas fa-microphone text-purple-300 mr-2"></i> Voice Messages</li>
+                        <li><i class="fas fa-calendar text-purple-300 mr-2"></i> Smart Scheduling</li>
+                        <li><i class="fas fa-users text-purple-300 mr-2"></i> Group Wishes</li>
+                        <li><i class="fas fa-robot text-purple-300 mr-2"></i> AI Assistant</li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Connect With Us</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-2xl text-purple-200 hover:text-white transition duration-300">
+                            <i class="fab fa-facebook"></i>
+                        </a>
+                        <a href="#" class="text-2xl text-purple-200 hover:text-white transition duration-300">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-2xl text-purple-200 hover:text-white transition duration-300">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-2xl text-purple-200 hover:text-white transition duration-300">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
+                    <div class="mt-4">
+                        <p class="text-purple-200">
+                            <i class="fas fa-envelope mr-2"></i> support@birthdaywishpro.com
+                        </p>
+                        <p class="text-purple-200 mt-2">
+                            <i class="fas fa-phone mr-2"></i> +1 (555) 123-4567
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-purple-700 mt-8 pt-8 text-center">
+                <p class="text-purple-200">
+                    &copy; 2025 BirthdayWish Pro. All rights reserved. Made with <i class="fas fa-heart text-red-400"></i> for celebrating special moments.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Chatbot Widget -->
+    <div class="chatbot-container">
+        <div id="chatbot-widget" class="chatbot-widget">
+            <div class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white p-4 rounded-t-15 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-robot text-2xl"></i>
+                    <span class="font-semibold">Birthday Assistant</span>
+                </div>
+                <button id="close-chatbot" class="text-white hover:text-gray-200">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-3">
+                <div class="bg-purple-100 rounded-lg p-3">
+                    <p class="text-sm text-gray-800">
+                        👋 Hi! I'm your Birthday Assistant. I can help you create perfect birthday wishes, suggest gift ideas, and answer any questions!
+                    </p>
+                </div>
+            </div>
+
+            <div class="p-4 border-t">
+                <div class="flex space-x-2">
+                    <input
+                        type="text"
+                        id="chat-input"
+                        placeholder="Type your message..."
+                        class="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-purple-500"
+                    />
+                    <button id="send-message" class="bg-purple-600 text-white px-6 py-2 rounded-full hover:bg-purple-700 transition duration-300">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <button id="chatbot-trigger" class="bg-purple-600 text-white w-16 h-16 rounded-full shadow-lg hover:bg-purple-700 transition duration-300 flex items-center justify-center">
+            <i class="fas fa-comment-dots text-2xl"></i>
+        </button>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-button').addEventListener('click', function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+
+        // Chatbot functionality
+        const chatbotTrigger = document.getElementById('chatbot-trigger');
+        const chatbotWidget = document.getElementById('chatbot-widget');
+        const closeChatbot = document.getElementById('close-chatbot');
+        const sendMessage = document.getElementById('send-message');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+
+        chatbotTrigger.addEventListener('click', function() {
+            chatbotWidget.classList.add('active');
+            chatbotTrigger.style.display = 'none';
+        });
+
+        closeChatbot.addEventListener('click', function() {
+            chatbotWidget.classList.remove('active');
+            chatbotTrigger.style.display = 'flex';
+        });
+
+        function addMessage(message, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${isUser ? 'bg-purple-600 text-white ml-auto' : 'bg-gray-200 text-gray-800'} rounded-lg p-3 max-w-[80%] fade-in`;
+            messageDiv.innerHTML = `<p class="text-sm">${message}</p>`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, true);
+            chatInput.value = '';
+
+            // Send to server
+            fetch('{% url "chatbot_api" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    message: message,
+                    session_id: Date.now().toString()
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    setTimeout(() => {
+                        addMessage(data.response);
+                    }, 500);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addMessage('Sorry, I encountered an error. Please try again.');
+            });
+        }
+
+        sendMessage.addEventListener('click', sendChatMessage);
+
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
