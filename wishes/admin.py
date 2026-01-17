@@ -101,8 +101,6 @@ class GroupWishAdmin(admin.ModelAdmin):
     list_filter = ['is_active', 'is_sent', 'created_at']
     search_fields = ['title', 'recipient__username', 'creator__username', 'invitation_code']
     readonly_fields = ['id', 'invitation_code', 'created_at', 'updated_at']
-    filter_horizontal = ['contributors']
-
     fieldsets = (
         ('Basic Information', {
             'fields': ('id', 'title', 'recipient', 'creator', 'description')
@@ -116,15 +114,17 @@ class GroupWishAdmin(admin.ModelAdmin):
         ('Invitation', {
             'fields': ('invitation_code',)
         }),
-        ('Contributors', {
-            'fields': ('contributors',),
-            'classes': ('collapse',)
-        }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',)
         }),
     )
+
+    def get_readonly_fields(self, request, obj=None):
+        # Make contributors field readonly since it uses an intermediate model
+        if obj:  # Editing an existing object
+            return self.readonly_fields + ('contributors',)
+        return self.readonly_fields
 
     def contributor_count(self, obj):
         return obj.contributors.count()
