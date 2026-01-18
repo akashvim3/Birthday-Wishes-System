@@ -62,3 +62,9 @@ def show_upcoming_birthdays(limit=5):
 def get_item(dictionary, key):
     """Get item from dictionary"""
     return dictionary.get(key)
+
+
+@register.filter
+def add_class(field, css_class):
+    """Add CSS class to form field"""
+    return field.as_widget(attrs={"class": css_class})

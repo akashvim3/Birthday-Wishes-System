@@ -8,6 +8,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_protect
 import json
 from datetime import datetime, timedelta
 
@@ -355,7 +357,7 @@ def register(request):
 
         if form.is_valid():
             user = form.save()
-            UserProfile.objects.create(user=user)
+            UserProfile.objects.get_or_create(user=user)
 
             username = form.cleaned_data.get('username')
             password = form.cleaned_data.get('password1')
@@ -369,3 +371,16 @@ def register(request):
         form = UserCreationForm()
 
     return render(request, 'registration/register.html', {'form': form})
+
+
+@require_http_methods(["GET", "POST"])
+@csrf_protect
+def custom_logout(request):
+    """Custom logout view that handles both GET and POST requests"""
+    if request.method == 'POST' or request.user.is_authenticated:
+        # Log out the user
+        logout(request)
+        messages.success(request, 'You have been logged out successfully.')
+    
+    # Redirect to home page
+    return redirect('index')

@@ -200,6 +200,339 @@
     }
 }
 
+/* Registration Page Specific Styles */
+.registration-container {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    position: relative;
+    overflow: hidden;
+}
+
+.registration-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+.registration-card {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+    transform-style: preserve-3d;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.registration-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.35),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
+.registration-header {
+    position: relative;
+    z-index: 2;
+}
+
+.registration-header h2 {
+    background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientFlow 3s ease infinite;
+}
+
+@keyframes gradientFlow {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.form-input {
+    background: rgba(249, 250, 251, 0.8);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 16px 20px;
+    width: 100%;
+    font-size: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #7c3aed;
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.1),
+                0 10px 25px -5px rgba(124, 58, 237, 0.1);
+    transform: translateY(-2px);
+}
+
+.form-input::placeholder {
+    color: #9ca3af;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus::placeholder {
+    color: #6b7280;
+    transform: translateX(5px);
+}
+
+.form-label {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #374151;
+    transition: all 0.3s ease;
+}
+
+.form-group:hover .form-label {
+    color: #7c3aed;
+    transform: translateX(3px);
+}
+
+.form-group {
+    position: relative;
+    margin-bottom: 24px;
+    transition: all 0.3s ease;
+}
+
+.form-group:hover {
+    transform: translateX(2px);
+}
+
+.password-requirements {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1px solid #bae6fd;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 16px;
+    transition: all 0.3s ease;
+}
+
+.password-requirements:hover {
+    background: linear-gradient(135deg, #e0f2fe 0%, #cffafe 100%);
+    border-color: #67e8f9;
+    transform: translateY(-2px);
+}
+
+.submit-button {
+    background: linear-gradient(90deg, #7c3aed, #6d28d9, #5b21b6);
+    background-size: 200% 200%;
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    padding: 16px 24px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
+    animation: pulseGlow 2s ease infinite alternate;
+}
+
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 4px 20px rgba(124, 58, 237, 0.3);
+    }
+    100% {
+        box-shadow: 0 4px 30px rgba(124, 58, 237, 0.5),
+                    0 0 0 10px rgba(124, 58, 237, 0.1);
+    }
+}
+
+.submit-button:hover {
+    background-size: 300% 300%;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 35px rgba(124, 58, 237, 0.4),
+                0 0 0 15px rgba(124, 58, 237, 0.1);
+    animation: none;
+}
+
+.submit-button:active {
+    transform: translateY(-1px) scale(0.98);
+}
+
+.submit-button::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 20px;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(25deg);
+    transition: all 0.6s;
+}
+
+.submit-button:hover::after {
+    left: 120%;
+}
+
+.already-account-link {
+    color: #7c3aed;
+    font-weight: 600;
+    text-decoration: none;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.already-account-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #7c3aed, #6d28d9);
+    transition: width 0.3s ease;
+}
+
+.already-account-link:hover {
+    color: #6d28d9;
+    transform: translateY(-2px);
+}
+
+.already-account-link:hover::after {
+    width: 100%;
+}
+
+/* Input field icons animation */
+.form-icon {
+    transition: all 0.3s ease;
+    color: #6b7280;
+}
+
+.form-group:hover .form-icon {
+    color: #7c3aed;
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Error message styling */
+.error-message {
+    background: linear-gradient(90deg, #fee2e2, #fecaca);
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #dc2626;
+    display: flex;
+    align-items: center;
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Success animation for form submission */
+@keyframes formSuccess {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.02);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.form-success {
+    animation: formSuccess 0.6s ease;
+}
+
+/* Loading state for submit button */
+.submit-button.loading {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.submit-button.loading::before {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    animation: spin 1s linear infinite;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .registration-container {
+        padding: 1rem;
+    }
+    
+    .registration-card {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+    
+    .form-input {
+        padding: 14px 16px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    .submit-button {
+        padding: 14px 20px;
+        font-size: 16px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .registration-card {
+        background: rgba(30, 30, 40, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .form-input {
+        background: rgba(50, 50, 60, 0.8);
+        color: #e5e7eb;
+    }
+    
+    .form-input:focus {
+        background: rgba(60, 60, 70, 0.95);
+    }
+}
+
 /* Mobile optimizations */
 @media (max-width: 768px) {
     .mobile-stack {
